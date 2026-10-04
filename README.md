@@ -32,4 +32,16 @@ EF Core migrations are under `src\ConsuCare.Api\Migrations`. Configure the targe
 
 ## Shared contracts
 
-`src\ConsuCare.Shared` is copied into the frontend repository. Keep DTO and model changes synchronized in both repositories when the API contract changes.
+`src\ConsuCare.Shared` in this backend repository is the canonical contract source. After changing a DTO or model, run this from the backend repository root to update the frontend and original combined repository:
+
+```powershell
+.\scripts\Sync-SharedContracts.ps1
+```
+
+To check for drift without changing files:
+
+```powershell
+.\scripts\Sync-SharedContracts.ps1 -Check
+```
+
+Commit and push the updated shared-contract files in each affected repository. GitHub Actions checks the copies for drift after pushes to `main`.

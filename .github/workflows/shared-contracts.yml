@@ -1,0 +1,35 @@
+name: Shared contract synchronization
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-copies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out backend
+        uses: actions/checkout@v4
+
+      - name: Check out frontend
+        run: git clone --depth 1 https://github.com/adjout2012-bit/ConsuCare_frontend.git "$RUNNER_TEMP/frontend"
+
+      - name: Check out combined repository
+        run: git clone --depth 1 https://github.com/adjout2012-bit/ConsuCare.git "$RUNNER_TEMP/monolith"
+
+      - name: Compare shared contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in ConsuCare.Shared.csproj Dtos/Dtos.cs Models/Entities.cs; do
+            for repo in "$RUNNER_TEMP/frontend" "$RUNNER_TEMP/monolith"; do
+              if ! cmp -s "src/ConsuCare.Shared/$file" "$repo/src/ConsuCare.Shared/$file"; then
+                echo "::error::Shared contract is out of sync: $file in $repo"
+                exit 1
+              fi
+            done
+          done
